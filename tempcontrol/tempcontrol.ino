@@ -22,6 +22,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <OneWire.h>
+#include <DS18B20.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -34,6 +36,12 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
+
+#define ONE_WIRE_BUS 7
+
+OneWire oneWire(ONE_WIRE_BUS);
+DS18B20 sensor(&oneWire);
+
 static const unsigned char PROGMEM logo_bmp[] =
 { B00000000, B11000000,
   B00000001, B11000000,
@@ -53,7 +61,10 @@ static const unsigned char PROGMEM logo_bmp[] =
   B00000000, B00110000 };
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin (115200);
+  //while (!Serial){}
+
+  sensor.begin();
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
@@ -66,6 +77,7 @@ void setup() {
   display.display();
   delay(2000); // Pause for 2 seconds
 
+#if 0
   // Clear the buffer
   display.clearDisplay();
 
@@ -112,11 +124,24 @@ void setup() {
   delay(1000);
   display.invertDisplay(false);
   delay(1000);
-
-  testanimate(logo_bmp, LOGO_WIDTH, LOGO_HEIGHT); // Animate bitmaps
+#endif
+  //testanimate(logo_bmp, LOGO_WIDTH, LOGO_HEIGHT); // Animate bitmaps
+  Serial.println ("Start test ...");
 }
 
 void loop() {
+  sensor.requestTemperatures();
+  while (!sensor.isConversionComplete());  // wait until sensor is ready
+  printTemperature(sensor.getTempC());
+}
+
+void printTemperature(float temp) {
+  display.clearDisplay();
+  display.setTextSize(2);             // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  display.println(temp);
+  display.display();
 }
 
 void testdrawline() {

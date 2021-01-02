@@ -10,6 +10,8 @@ OledDisplay::OledDisplay(int width, int height, int pin_reset) {
   currentTemperature_ = 0;
   targetTemperature_ = 30;
   offset_ = 1;
+  switchActive_ = 0;
+  switchStatus_ = 1;
 }
 
 OledDisplay::~OledDisplay() {
@@ -38,11 +40,21 @@ void OledDisplay::update() {
   display_->println(targetTemperature_);
   display_->print("CUR: ");
   display_->println(currentTemperature_);
+  display_->print(switchActive_ ? "High" : "Low");
+  display_->println(" Active");
+  display_->print("SW: ");
+  display_->println(switchStatus_ ? "ON" : "OFF");
   display_->display();
 }
 
 void OledDisplay::update(float temperature) {
   currentTemperature_ = temperature;
+  update();
+}
+
+void OledDisplay::update(float temperature, bool onoff) {
+  currentTemperature_ = temperature;
+  switchStatus_ = onoff;
   update();
 }
 
@@ -55,7 +67,21 @@ void OledDisplay::setTargetTemperature(float temperature) {
 }
 
 void OledDisplay::setOffset(float offset) {
-   offset_ = offset; 
+  offset_ = offset; 
+}
+
+void OledDisplay::setSwitchActive(bool high) {
+  switchActive_ = high;
+}
+
+void OledDisplay::setSwitchStatus(float onoff) {
+  switchStatus_ = onoff;
+}
+
+void OledDisplay::setConfig(Config conf) {
+  targetTemperature_ = conf.target;
+  offset_ = conf.offset;
+  switchActive_ = conf.active;
 }
 
 Adafruit_SSD1306 *OledDisplay::getDisplay() {

@@ -21,7 +21,8 @@
 #include <OneWire.h>
 #include <DS18B20.h>
 #include "OledDisplay.h"
-#include "OledTest.h"
+#include "Config.h"
+#include "SwitchControl.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -29,13 +30,10 @@
 #define ONE_WIRE_BUS 7
 
 OledDisplay disp(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_RESET);
-OledTest oledTest(disp.getDisplay());
 OneWire oneWire(ONE_WIRE_BUS);
 DS18B20 sensor(&oneWire);
-
-float targetTemperature = 30;
-float currentTemperature = 0;
-float offset = 1;
+Config conf(25, 1, false);
+SwitchControl control;
 
 void setup() {
   Serial.begin (115200);
@@ -44,16 +42,19 @@ void setup() {
   sensor.begin();
   disp.begin();
 
-  disp.setTargetTemperature(targetTemperature);
-  disp.setOffset(offset);
-  //disp.display();
-  //delay(2000); // Pause for 2 seconds
-  //Serial.println ("Start test ...");
+  control.setConfig(conf);
+  disp.setConfig(conf);
+  disp.setSwitchStatus(false);
 }
 
 void loop() {
   sensor.requestTemperatures();
   while (!sensor.isConversionComplete());  // wait until sensor is ready
-  currentTemperature = sensor.getTempC();
-  disp.update(currentTemperature);
+  float temperature = sensor.getTempC();
+  bool switchStatus = control.update(temperature);
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.print(" , Switch: ");
+  Serial.println(switchStatus);
+  disp.update(temperature, switchStatus);
 }

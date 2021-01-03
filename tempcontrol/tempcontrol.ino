@@ -42,7 +42,7 @@ void setup() {
   Serial.begin (115200);
   //while (!Serial){}
 
-  pinMode(17, OUTPUT);
+  pinMode(9, OUTPUT);
   sensor.begin();
   disp.begin();
 
@@ -59,12 +59,12 @@ void loop() {
   disp.update(temperature, switchStatus);
   if (switchStatus) {
     TXLED1;
-    //digitalWrite(17, HIGH);
     RXLED0;
+    digitalWrite(9, HIGH);
   }
   else {
     TXLED0;
-    //digitalWrite(17, LOW);
     RXLED1;
+    digitalWrite(9, LOW);
   }
 }

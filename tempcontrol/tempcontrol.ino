@@ -29,6 +29,9 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define ONE_WIRE_BUS 7
 
+#define RXLED0 do{pinMode(17, OUTPUT); digitalWrite(17, HIGH);}while(0)
+#define RXLED1 do{pinMode(17, OUTPUT); digitalWrite(17, LOW);}while(0)
+
 OledDisplay disp(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_RESET);
 OneWire oneWire(ONE_WIRE_BUS);
 DS18B20 sensor(&oneWire);
@@ -39,6 +42,7 @@ void setup() {
   Serial.begin (115200);
   //while (!Serial){}
 
+  pinMode(17, OUTPUT);
   sensor.begin();
   disp.begin();
 
@@ -52,9 +56,15 @@ void loop() {
   while (!sensor.isConversionComplete());  // wait until sensor is ready
   float temperature = sensor.getTempC();
   bool switchStatus = control.update(temperature);
-  Serial.print("Temperature: ");
-  Serial.print(temperature);
-  Serial.print(" , Switch: ");
-  Serial.println(switchStatus);
   disp.update(temperature, switchStatus);
+  if (switchStatus) {
+    TXLED1;
+    //digitalWrite(17, HIGH);
+    RXLED0;
+  }
+  else {
+    TXLED0;
+    //digitalWrite(17, LOW);
+    RXLED1;
+  }
 }
